@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<document>
+    <English name="name" value="value">&amp;#84;&amp;#104;&amp;#101;&amp;#32;&amp;#119;&amp;#111;&amp;#114;&amp;#108;&amp;#100;&amp;#32;&amp;#104;&amp;#97;&amp;#115;&amp;#32;&amp;#109;&amp;#97;&amp;#110;&amp;#121;&amp;#32;&amp;#108;&amp;#97;&amp;#110;&amp;#103;&amp;#117;&amp;#97;&amp;#103;&amp;#101;&amp;#115;</English>
+    <Russian name="название(имя)" value="ценность">Мир&amp;#32;имеет&amp;#32;много&amp;#32;языков</Russian>
+    <Spanish name="el nombre" value="el valor">&amp;#101;&amp;#108;&amp;#32;&amp;#109;&amp;#117;&amp;#110;&amp;#100;&amp;#111;&amp;#32;&amp;#116;&amp;#105;&amp;#101;&amp;#110;&amp;#101;&amp;#32;&amp;#109;&amp;#117;&amp;#99;&amp;#104;&amp;#111;&amp;#115;&amp;#32;&amp;#105;&amp;#100;&amp;#105;&amp;#111;&amp;#109;&amp;#97;&amp;#115;</Spanish>
+    <SimplifiedChinese name="名字" value="价值">世界有很多语言</SimplifiedChinese>
+    <Русский название="name" ценность="value">&amp;#60;имеет&amp;#62;</Русский>
+    <汉语 名字="name" 价值="value">世界有很多语言</汉语>
+    <Heavy>&amp;#34;&amp;#77;&amp;#235;&amp;#116;&amp;#230;&amp;#108;&amp;#33;&amp;#34;</Heavy>
+    <ä>&amp;#85;&amp;#109;&amp;#108;&amp;#97;&amp;#117;&amp;#116;&amp;#32;&amp;#69;&amp;#108;&amp;#101;&amp;#109;&amp;#101;&amp;#110;&amp;#116;</ä>
+</document>
