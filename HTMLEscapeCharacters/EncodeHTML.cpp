@@ -6,16 +6,14 @@
 
 #include "EncodeHTML.h"
 #include "Utils.h"
-#include "TinyXML\tinyxml2.h"
 
 #include <iostream> 
 #include <experimental/filesystem>
-
-
 namespace fs = std::experimental::filesystem;
 
 
-CEncodeHTML::CEncodeHTML()
+CEncodeHTML::CEncodeHTML(bool bEncode, bool bSub)
+	: m_bEncode(bEncode), m_bSub(bSub)
 {
 }
 
@@ -35,7 +33,7 @@ static int print_log(const char* format, ...)
 	return 0;
 }
 
-static void XMLWalk(tinyxml2::XMLElement* pElement, bool bEncode)
+void CEncodeHTML::XMLWalk(tinyxml2::XMLElement* pElement)
 {
 	TIXMLASSERT(pElement);
 	// ... do some processing on node here ... //
@@ -45,7 +43,7 @@ static void XMLWalk(tinyxml2::XMLElement* pElement, bool bEncode)
 		{
 			std::string strText = pElement->GetText();
 			std::wstring strTextW = CA2CT(strText.c_str(), CP_UTF8);
-			if (bEncode)
+			if (m_bEncode)
 			{
 				strTextW = EncodeHTML(strTextW);
 			}
@@ -63,12 +61,24 @@ static void XMLWalk(tinyxml2::XMLElement* pElement, bool bEncode)
 			pChildElement != nullptr;
 			pChildElement = pChildElement->NextSiblingElement())
 		{
-			XMLWalk(pChildElement, bEncode);
+			XMLWalk(pChildElement);
 		}
 	}
 }
 
-int CEncodeHTML::EncodeFile(const std::string &strSource, const std::string &strDestination, bool bEncode)
+
+// check if directory are created
+void CEncodeHTML::CreateDirectory(const std::string &strSource) const
+{
+	fs::path p(strSource);
+	if (!fs::is_directory(p.parent_path()))
+	{
+		fs::create_directories(p.parent_path());
+	}
+}
+
+
+int CEncodeHTML::EncodeFile(const std::string &strSource, const std::string &strDestination)
 {
 	tinyxml2::XMLDocument xmldoc;
 
@@ -80,7 +90,9 @@ int CEncodeHTML::EncodeFile(const std::string &strSource, const std::string &str
 	if (pRoot == nullptr)
 		return 2;
 
-	XMLWalk(pRoot, bEncode);
+	XMLWalk(pRoot);
+
+	CreateDirectory(strDestination);
 
 	eResult = xmldoc.SaveFile(strDestination.c_str());
 	if (eResult != tinyxml2::XML_SUCCESS)
@@ -89,42 +101,9 @@ int CEncodeHTML::EncodeFile(const std::string &strSource, const std::string &str
 }
 
 
-// version v1
-// doesn't work with wildcards :(
-// doesn't work with subdirectories
-std::vector<std::string> CEncodeHTML::GetDirectoryFiles(const std::string &strDir, const std::vector<std::string> &strExtensions)
+int CEncodeHTML::EncodeFileMessage(const std::string &strSource, const  std::string &strDestination)
 {
-	std::vector<std::string> files;
-	if (fs::is_regular_file(strDir))
-	{
-		auto ext = fs::path(strDir).extension().string();
-		std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
-		if (strExtensions.empty() || find(strExtensions.begin(), strExtensions.end(), ext) != strExtensions.end())
-		{
-			files.push_back(strDir);
-		}
-	}
-	else
-	{
-		for (auto & p : fs::recursive_directory_iterator(strDir))
-		{
-			if (fs::is_regular_file(p))
-			{
-				auto ext = p.path().extension().string();
-				std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
-				if (strExtensions.empty() || find(strExtensions.begin(), strExtensions.end(), ext) != strExtensions.end())
-				{
-					files.push_back(p.path().string());
-				}
-			}
-		}
-	}
-	return files;
-}
-
-int CEncodeHTML::EncodeFileMessage(const std::string &strSource, const  std::string &strDestination, bool bEncode)
-{
-	int nRet = EncodeFile(strSource, strDestination, bEncode);
+	int nRet = EncodeFile(strSource, strDestination);
 	switch (nRet)
 	{
 	case 0:
@@ -141,13 +120,7 @@ int CEncodeHTML::EncodeFileMessage(const std::string &strSource, const  std::str
 }
 
 
-int CEncodeHTML::EncodePath
-(
-	const std::string &strSource,
-	const std::string &strDestination,
-	const std::vector<std::string> &strExtensions,
-	bool bEncode
-)
+int CEncodeHTML::EncodePath(const std::string &strSource,const std::string &strDestination,const std::vector<std::string> &strExtensions)
 {
 	int nRet(0);
 	int nCases(0);
@@ -163,12 +136,12 @@ int CEncodeHTML::EncodePath
 		nRet = 9;
 		break;
 	case 1: // only input are file, we need file name for output
-		nRet = EncodeFileMessage(strSource, strDestination, bEncode);
+		nRet = EncodeFileMessage(strSource, strDestination);
 		break;
 	case 2: //input file exist. Output file doesn't exist or wrong file name?
 		break;
 	case 3: // input and output are files. Remove output file before convert
-		nRet = EncodeFileMessage(strSource, strDestination, bEncode);
+		nRet = EncodeFileMessage(strSource, strDestination);
 		break;
 	case 5: // source directory exists, but incorrect destination directory
 		nRet = 10;
@@ -180,15 +153,16 @@ int CEncodeHTML::EncodePath
 		{
 			fs::path ps(strSource);
 			std::string d = strDestination + "\\" + ps.filename().generic_string().c_str();
-			nRet = EncodeFileMessage(strSource, d, bEncode);
+			nRet = EncodeFileMessage(strSource, d);
 		}
 		break;
-	case 11: // encode directories
-		for (auto &s : GetDirectoryFiles(strSource, strExtensions))
+	case 11: // encode directories & subdirectories
+		for (auto &s : GetDirectoryFiles(strSource, strExtensions,m_bSub))
 		{
-			fs::path ps(s);
-			std::string d = strDestination + "\\" + ps.filename().generic_string().c_str();
-			int nCallRet = EncodeFileMessage(s, d, bEncode);
+			std::string sub(s);
+			sub.replace(0, strSource.size(), "");
+			std::string d = strDestination + "\\" + sub;
+			int nCallRet = EncodeFileMessage(s, d);
 			nRet = max(nRet, nCallRet);
 		}
 		break;

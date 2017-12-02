@@ -5,7 +5,7 @@
 #include <iostream> 
 
 CParseParameters::CParseParameters(int argc, char *argv[])
-	: m_bEncode(true)
+	: m_bEncode(true), m_bSub(false)
 {
 	for (int i = 1; i < argc; i++)
 	{
@@ -23,13 +23,14 @@ int CParseParameters::Message_Help(void) const
 {
 	std::cout << "Replace all HTML text data with escape characters." << std::endl
 		<< std::endl
-		<< "EncodeHTML source [destination] [/?] [/h] [/d] [/e .htm,.xml,...]" << std::endl
+		<< "EncodeHTML source [destination] [/?] [/h] [/d] [/s] [/e .htm,.xml,...]" << std::endl
 		<< std::endl
 		<< "source       Specifies the file or directory to be copied and encoded." << std::endl
 		<< "destination  Specifies the directory and/or filename for the new file(s)." << std::endl
 		<< "[/?] [/h]    Help." << std::endl
 		<< "[/e]         Indicates a file extensions" << std::endl
 		<< "[/d]         Decode" << std::endl
+		<< "[/s]         Encode and decode directory and subdirectories" << std::endl
 		;
 	return 1;
 }
@@ -99,6 +100,12 @@ int CParseParameters::Validate(void)
 		nParamsCount += 1;
 	}
 
+	if (OptionExists("/s"))
+	{
+		m_bSub = true;
+		nParamsCount += 1;
+	}
+
 	switch (m_vTokens.size() - nParamsCount)
 	{
 	case 0:
@@ -135,4 +142,9 @@ std::vector <std::string> CParseParameters::GetExtensions() const
 bool CParseParameters::GetEncode() const
 {
 	return m_bEncode;
+}
+
+bool CParseParameters::GetSubdirectories() const
+{
+	return m_bSub;
 }

@@ -12,6 +12,8 @@
 #include "EncodeHTML.h"
 #include "ParseParameters.h"
 
+#include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
 
 // for testing purpose repeate main 
 int Execute(int argc, char *argv[])
@@ -22,7 +24,8 @@ int Execute(int argc, char *argv[])
 	nRet = p.Validate();
 	if (0 == nRet)
 	{
-		nRet = CEncodeHTML::EncodePath(p.GetSource(), p.GetDestination(), p.GetExtensions(), p.GetEncode());
+		CEncodeHTML encode(p.GetEncode(), p.GetSubdirectories());
+		nRet = encode.EncodePath(p.GetSource(), p.GetDestination(),p.GetExtensions());
 	}
 	return nRet;
 }
@@ -832,3 +835,50 @@ std::string Trim(const std::string &s)
 	auto wsback = std::find_if_not(s.rbegin(), s.rend(), [](int c) {return std::isspace(c); }).base();
 	return (wsback <= wsfront ? std::string() : std::string(wsfront, wsback));
 }
+
+static bool FilterFilesByExtensions(const std::string &strDir, const std::vector<std::string> &strExtensions, std::vector<std::string> &files)
+{
+	bool bRet(false);
+
+	if (fs::is_regular_file(strDir))
+	{
+		auto ext = fs::path(strDir).extension().string();
+		std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+		if (strExtensions.empty() || find(strExtensions.begin(), strExtensions.end(), ext) != strExtensions.end())
+		{
+			files.push_back(strDir);
+			bRet = true;
+		}
+	}
+	return bRet;
+}
+// version v1
+// doesn't work with wildcards :(
+std::vector<std::string> GetDirectoryFiles(const std::string &strDir, const std::vector<std::string> &strExtensions, bool bSub)
+{
+	std::vector<std::string> files;
+	if (fs::is_regular_file(strDir))
+	{
+		FilterFilesByExtensions(strDir, strExtensions, files);
+	}
+	else
+	{
+		if (bSub)
+		{
+			for (auto & p : fs::recursive_directory_iterator(strDir))
+			{
+				FilterFilesByExtensions(p.path().generic_string().c_str(), strExtensions, files);
+			}
+		}
+		else
+		{
+			for (auto & p : fs::directory_iterator(strDir))
+			{
+				FilterFilesByExtensions(p.path().generic_string().c_str(), strExtensions, files);
+			}
+		}
+
+	}
+	return files;
+}
+

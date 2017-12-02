@@ -10,6 +10,7 @@ class CParseParameters
 	std::string m_strSource;
 	std::string m_strDestination;
 	bool m_bEncode;
+	bool m_bSub; //subdirectories
 
 public:
 	CParseParameters(int argc, char *argv[]);
@@ -28,6 +29,7 @@ public:
 	std::string GetDestination() const;
 	std::vector <std::string> GetExtensions() const;
 	bool GetEncode() const;
+	bool GetSubdirectories() const;
 
 };
 

@@ -4,7 +4,7 @@
 pause
 
 @REM // directories and extensions
-..\Debug\EncodeHTML.exe ..\HTMLEscapeCharacters\Input\ ..\HTMLEscapeCharacters\output\ /e .htm,.html
+..\Debug\EncodeHTML.exe ..\HTMLEscapeCharacters\Input\ ..\HTMLEscapeCharacters\output\ /e .htm,.html /s
 @echo ________________
 @echo Return code: %ERRORLEVEL%
 pause
@@ -51,8 +51,8 @@ pause
 @echo Return code: %ERRORLEVEL%
 pause
 
-@REM // only source file & extensions
-..\Debug\EncodeHTML.exe ..\HTMLEscapeCharacters\Input\HtmlPageTest.htm /e .htm,.html,.xml
+@REM // only decode source file 
+..\Debug\EncodeHTML.exe ..\HTMLEscapeCharacters\Input\HtmlPageTest.htm /d
 @echo ________________
 @echo Return code: %ERRORLEVEL%
 pause

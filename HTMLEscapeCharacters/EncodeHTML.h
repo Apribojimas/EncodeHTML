@@ -3,16 +3,23 @@
 #include <string>
 #include <vector>
 
+#include "TinyXML\tinyxml2.h"
+
 class CEncodeHTML
 {
-	CEncodeHTML();
+	bool m_bEncode;
+	bool m_bSub; //subdirectories
+
 public:
+	CEncodeHTML(bool bEncode, bool bSub);
 	virtual ~CEncodeHTML();
 
-	static int EncodeFile(const std::string &strSource, const  std::string &strDestination, bool bEncode);
-	static int EncodeFileMessage(const std::string &strSource, const  std::string &strDestination, bool bEncode);
-	static int EncodePath(const std::string &strSource, const std::string &strDestination, const std::vector<std::string> &strExtensions = { "" }, bool bEncode = true);
+	int EncodeFile(const std::string &strSource, const  std::string &strDestination);
+	int EncodeFileMessage(const std::string &strSource, const  std::string &strDestination);
+	int EncodePath(const std::string &strSource, const std::string &strDestination, const std::vector<std::string> &strExtensions = { "" });
 
-	static std::vector<std::string> GetDirectoryFiles(const std::string &strDir, const std::vector<std::string> &strExtensions);
+private:
+	void XMLWalk(tinyxml2::XMLElement* pElement);
+	void CreateDirectory(const std::string &strSource) const;
 };
 
